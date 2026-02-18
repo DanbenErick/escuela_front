@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════════════
+   School ERP — Windows-Inspired Design System
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Reset & Base ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Windows 11 color palette */
+  --win-blue: #0078d4;
+  --win-blue-dark: #106ebe;
+  --win-blue-light: #e8f4fd;
+  --win-green: #107c10;
+  --win-purple: #5c2d91;
+  --win-orange: #d83b01;
+  --win-red: #a80000;
+  --win-bg: #f3f3f3;
+  --win-surface: #ffffff;
+  --win-border: #e5e5e5;
+  --win-text: #1a1a1a;
+  --win-text-secondary: #616161;
+  --win-sidebar-dark: #1b1b2f;
+  --win-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --win-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --win-radius: 4px;
+  --win-radius-lg: 8px;
+  --win-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: var(--win-text);
+  background: var(--win-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--win-bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ─── Login Page ─── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(135deg, #0078d4 0%, #1b1b2f 40%, #162447 70%, #1f4068 100%);
+  z-index: 0;
+}
+
+.login-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(0, 120, 212, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(92, 45, 145, 0.1) 0%, transparent 50%);
+  animation: bgFloat 30s ease-in-out infinite;
+}
+
+@keyframes bgFloat {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(30px, -30px) rotate(1deg); }
+  66% { transform: translate(-20px, 20px) rotate(-1deg); }
+}
+
+.login-card {
+  backdrop-filter: blur(10px);
+}
+
+/* ─── Windows Panel Style ─── */
+.win-panel {
+  background: var(--win-surface);
+  border: 1px solid var(--win-border);
+  border-radius: var(--win-radius-lg);
+  box-shadow: var(--win-shadow);
+  transition: var(--win-transition);
+}
+
+/* ─── Windows Card Hover ─── */
+.win-card {
+  transition: var(--win-transition);
+}
+
+.win-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--win-shadow-lg);
+  border-color: var(--win-blue) !important;
+}
+
+/* ─── Windows Button Hover (for header buttons) ─── */
+.win-btn {
+  transition: var(--win-transition);
+}
+
+.win-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ─── Sidebar Styles ─── */
+.ant-layout-sider .ant-menu-item {
+  margin: 2px 8px !important;
+  border-radius: 4px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 13px;
+}
+
+.ant-layout-sider .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.ant-layout-sider .ant-menu-item-selected {
+  background: rgba(0, 120, 212, 0.3) !important;
+}
+
+.ant-layout-sider .ant-menu-item-selected::after {
+  display: none;
+}
+
+/* ─── Tabs Styling ─── */
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  border-radius: 4px 4px 0 0 !important;
+  border-bottom: none !important;
+  padding: 6px 16px !important;
+  font-size: 13px;
+}
+
+.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: #fff !important;
+  border-bottom-color: #fff !important;
+}
+
+/* ─── Table Styling ─── */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #666;
+  padding: 10px 16px !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 10px 16px !important;
+  font-size: 13px;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: #f5f8fc !important;
+}
+
+/* ─── Form Styling ─── */
+.ant-form-item-label > label {
+  font-weight: 500;
+  font-size: 12px;
+  color: #444;
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-radius: var(--win-radius) !important;
+}
+
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper-focused {
+  border-color: var(--win-blue) !important;
+  box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.15) !important;
+}
+
+/* ─── Modal ─── */
+.ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 14px 20px !important;
+}
+
+.ant-modal-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ant-modal-body {
+  padding: 16px 20px !important;
+}
+
+.ant-modal-footer {
+  border-top: 1px solid #f0f0f0;
+  padding: 10px 20px !important;
+}
+
+/* ─── Alert Styling ─── */
+.ant-alert {
+  border-radius: var(--win-radius) !important;
+}
+
+/* ─── Tag Styling ─── */
+.ant-tag {
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ─── Scrollbar (Windows-style) ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: rgba(0, 120, 212, 0.2);
+  color: inherit;
+}
+
+/* ─── Print ─── */
+@media print {
+  .ant-layout-sider,
+  .ant-layout-header {
+    display: none !important;
+  }
+  .ant-layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
