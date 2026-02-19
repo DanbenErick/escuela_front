@@ -67,9 +67,10 @@ const DashboardLayout: React.FC = () => {
         onCollapse={setCollapsed}
         trigger={null}
         width={260}
-        collapsedWidth={64}
+        breakpoint="lg"
+        collapsedWidth={0}
         style={{
-          background: 'linear-gradient(180deg, #1b1b2f 0%, #162447 50%, #1f4068 100%)',
+          background: '#1b1b2f',
           borderRight: '1px solid rgba(255,255,255,0.06)',
           boxShadow: '2px 0 12px rgba(0,0,0,0.3)',
           overflow: 'auto',
@@ -122,7 +123,7 @@ const DashboardLayout: React.FC = () => {
         />
       </Sider>
 
-      <Layout style={{ marginLeft: collapsed ? 64 : 260, transition: 'margin-left 0.2s' }}>
+      <Layout style={{ marginLeft: collapsed ? 0 : 260, transition: 'margin-left 0.2s' }}>
         {/* ─── Windows-style Header (Title Bar) ─── */}
         <Header
           style={{

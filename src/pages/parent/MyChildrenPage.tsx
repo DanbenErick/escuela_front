@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Typography, Tag, Empty, Spin, message } from 'antd';
-import { TeamOutlined, UserOutlined, HeartOutlined } from '@ant-design/icons';
+import { TeamOutlined, UserOutlined, HeartOutlined, IdcardOutlined, CalendarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { familiesApi, studentsApi } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 import type { Student } from '../../types';
@@ -46,14 +46,14 @@ const MyChildrenPage: React.FC = () => {
 
   const columns = [
     {
-      title: 'Nombre', key: 'name',
+      title: <span><UserOutlined /> Nombre</span>, key: 'name',
       render: (_: unknown, r: Student) => (
         <span><UserOutlined style={{ color: '#107c10', marginRight: 8 }} /><Text strong>{r.first_name} {r.last_name}</Text></span>
       ),
     },
-    { title: 'Documento', dataIndex: 'document_number', key: 'doc', render: (v: string | null) => v || <Text type="secondary">—</Text> },
-    { title: 'Fecha de Nacimiento', dataIndex: 'birth_date', key: 'birth', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
-    { title: 'Info Médica', dataIndex: 'medical_info', key: 'med', render: (v: string | null) => v || <Text type="secondary">Sin información</Text> },
+    { title: <span><IdcardOutlined /> Documento</span>, dataIndex: 'document_number', key: 'doc', render: (v: string | null) => v || <Text type="secondary">—</Text> },
+    { title: <span><CalendarOutlined /> Fecha de Nacimiento</span>, dataIndex: 'birth_date', key: 'birth', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
+    { title: <span><FileTextOutlined /> Info Médica</span>, dataIndex: 'medical_info', key: 'med', render: (v: string | null) => v || <Text type="secondary">Sin información</Text> },
   ];
 
   if (loading) {
@@ -75,6 +75,7 @@ const MyChildrenPage: React.FC = () => {
           rowKey="id"
           pagination={false}
           size="middle"
+          scroll={{ x: 600 }}
           locale={{ emptyText: <Empty description="No se encontraron hijos asociados a tu cuenta" /> }}
         />
       </Card>

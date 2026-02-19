@@ -117,6 +117,12 @@ export const conceptsApi = {
 
   getAll: () =>
     api.get<ApiResponse<FeeConcept[]>>('/finance/concepts'),
+
+  update: (id: string, data: Partial<CreateConceptRequest>) =>
+    api.put<ApiResponse<FeeConcept>>(`/finance/concepts/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete<ApiResponse>(`/finance/concepts/${id}`),
 };
 
 // ─── Finance ─────────────────────────────────────────────────────────────────
@@ -130,6 +136,9 @@ export const financeApi = {
 
   registerPayment: (data: RegisterPaymentRequest) =>
     api.post<ApiResponse>('/finance/payments', data),
+
+  getPaymentHistory: (familyId: string) =>
+    api.get<ApiResponse<any[]>>(`/finance/payments/family/${familyId}`),
 };
 
 // ─── Courses ─────────────────────────────────────────────────────────────────
@@ -140,6 +149,12 @@ export const coursesApi = {
 
   getAll: () =>
     api.get<ApiResponse<Course[]>>('/courses'),
+
+  update: (id: string, data: Partial<CreateCourseRequest>) =>
+    api.put<ApiResponse<Course>>(`/courses/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete<ApiResponse>(`/courses/${id}`),
 };
 
 // ─── Enrollments ─────────────────────────────────────────────────────────────
@@ -150,6 +165,12 @@ export const enrollmentsApi = {
 
   getByStudent: (studentId: string) =>
     api.get<ApiResponse<Enrollment[]>>(`/enrollments/student/${studentId}`),
+
+  getAll: () =>
+    api.get<ApiResponse<Enrollment[]>>('/enrollments'),
+
+  delete: (id: string) =>
+    api.delete<ApiResponse>(`/enrollments/${id}`),
 };
 
 // ─── Academic ────────────────────────────────────────────────────────────────
@@ -163,6 +184,18 @@ export const academicApi = {
 
   markAttendance: (data: AttendanceInput) =>
     api.post<ApiResponse>('/academic/attendance', data),
+
+  updateGrade: (id: string, data: Partial<GradeInput>) =>
+    api.put<ApiResponse>(`/academic/grades/${id}`, data),
+
+  deleteGrade: (id: string) =>
+    api.delete<ApiResponse>(`/academic/grades/${id}`),
+
+  getAttendance: (enrollmentId: string) =>
+    api.get<ApiResponse<any[]>>(`/academic/attendance/enrollment/${enrollmentId}`),
+
+  deleteAttendance: (id: string) =>
+    api.delete<ApiResponse>(`/academic/attendance/${id}`),
 };
 
 // ─── Communication ───────────────────────────────────────────────────────────
@@ -173,4 +206,10 @@ export const communicationApi = {
 
   createPost: (data: CreatePostRequest) =>
     api.post<ApiResponse>('/communications', data),
+
+  update: (id: string, data: Partial<CreatePostRequest>) =>
+    api.put<ApiResponse<Communication>>(`/communications/${id}`, data),
+
+  delete: (id: string) =>
+    api.delete<ApiResponse>(`/communications/${id}`),
 };

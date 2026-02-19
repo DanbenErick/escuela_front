@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Typography, Tag, Empty, Spin, Alert, message } from 'antd';
-import { DollarOutlined } from '@ant-design/icons';
+import { DollarOutlined, UserOutlined, FileTextOutlined, WarningOutlined, InfoCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import { familiesApi, financeApi } from '../../api/endpoints';
 import { useAuth } from '../../contexts/AuthContext';
 import type { FamilyDebt } from '../../types';
@@ -48,12 +48,12 @@ const MyDebtsPage: React.FC = () => {
   const totalDebt = debts.reduce((sum, d) => sum + Number(d.balance), 0);
 
   const columns = [
-    { title: 'Estudiante', key: 'student', render: (_: unknown, r: FamilyDebt) => <Text strong>{r.student_first_name} {r.student_last_name}</Text> },
-    { title: 'Concepto', dataIndex: 'concept_name', key: 'concept' },
-    { title: 'Monto', dataIndex: 'original_amount', key: 'amount', render: (v: number | string) => `S/ ${Number(v).toFixed(2)}` },
-    { title: 'Saldo Pendiente', dataIndex: 'balance', key: 'balance', render: (v: number | string) => <Text strong style={{ color: Number(v) > 0 ? '#d83b01' : '#107c10' }}>S/ {Number(v).toFixed(2)}</Text> },
-    { title: 'Estado', dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'paid' ? 'green' : v === 'partial' ? 'orange' : 'red'}>{v === 'paid' ? 'Pagado' : v === 'partial' ? 'Parcial' : 'Pendiente'}</Tag> },
-    { title: 'Vencimiento', dataIndex: 'due_date', key: 'due', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+    { title: <span><UserOutlined /> Estudiante</span>, key: 'student', render: (_: unknown, r: FamilyDebt) => <Text strong>{r.student_first_name} {r.student_last_name}</Text> },
+    { title: <span><FileTextOutlined /> Concepto</span>, dataIndex: 'concept_name', key: 'concept' },
+    { title: <span><DollarOutlined /> Monto</span>, dataIndex: 'original_amount', key: 'amount', render: (v: number | string) => `S/ ${Number(v).toFixed(2)}` },
+    { title: <span><WarningOutlined /> Saldo Pendiente</span>, dataIndex: 'balance', key: 'balance', render: (v: number | string) => <Text strong style={{ color: Number(v) > 0 ? '#d83b01' : '#107c10' }}>S/ {Number(v).toFixed(2)}</Text> },
+    { title: <span><InfoCircleOutlined /> Estado</span>, dataIndex: 'status', key: 'status', render: (v: string) => <Tag color={v === 'PAID' ? 'green' : v === 'PARTIAL' ? 'orange' : 'geekblue'}>{v === 'PAID' ? 'Pagado' : v === 'PARTIAL' ? 'Parcial' : v === 'OVERDUE' ? 'Vencido' : 'Pendiente'}</Tag> },
+    { title: <span><CalendarOutlined /> Vencimiento</span>, dataIndex: 'due_date', key: 'due', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
   ];
 
   if (loading) {
@@ -84,6 +84,7 @@ const MyDebtsPage: React.FC = () => {
           rowKey="fee_id"
           pagination={{ pageSize: 10 }}
           size="middle"
+          scroll={{ x: 800 }}
           locale={{ emptyText: <Empty description="¡No tienes deudas pendientes! 🎉" /> }}
         />
       </Card>

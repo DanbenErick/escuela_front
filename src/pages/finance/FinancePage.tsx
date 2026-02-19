@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Tabs, Form, Input, InputNumber, Button, Table, Card, Typography,
-  Space, Tag, Select, DatePicker, message, Empty, Alert, Modal, Tooltip, Row, Col, Statistic,
+  Space, Tag, Select, DatePicker, message, Empty, Alert, Modal, Tooltip, Row, Col, Statistic, Popconfirm,
 } from 'antd';
 import {
   DollarOutlined, CreditCardOutlined,
   BankOutlined, FileTextOutlined, PlusOutlined,
-  CheckCircleOutlined, WarningOutlined,
+  CheckCircleOutlined, WarningOutlined, EditOutlined, DeleteOutlined,
+  CalendarOutlined, TagOutlined, SettingOutlined, InfoCircleOutlined, UserOutlined,
 } from '@ant-design/icons';
 import { financeApi, conceptsApi, studentsApi, familiesApi } from '../../api/endpoints';
 import type { FamilyDebt, FeeConcept, GenerateFeesRequest, RegisterPaymentRequest, CreateConceptRequest, Student, Family } from '../../types';
@@ -14,8 +15,8 @@ import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const statusLabels: Record<string, string> = { paid: 'Pagado', partial: 'Parcial', pending: 'Pendiente' };
-const statusColors: Record<string, string> = { paid: 'green', partial: 'orange', pending: 'red' };
+const statusLabels: Record<string, string> = { PAID: 'Pagado', PARTIAL: 'Parcial', PENDING: 'Pendiente', OVERDUE: 'Vencido' };
+const statusColors: Record<string, string> = { PAID: 'green', PARTIAL: 'orange', PENDING: 'geekblue', OVERDUE: 'red' };
 
 /* ─── Fee Concepts Tab ─── */
 const ConceptsTab: React.FC = () => {
@@ -23,6 +24,8 @@ const ConceptsTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const [editing, setEditing] = useState<FeeConcept | null>(null);
 
   const loadConcepts = async () => {
     setLoading(true);
@@ -38,34 +41,71 @@ const ConceptsTab: React.FC = () => {
 
   useEffect(() => { loadConcepts(); }, []);
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const payload: CreateConceptRequest = {
+      const payload = {
         name: values.name,
         amount: values.amount,
         due_date: values.due_date.format('YYYY-MM-DD'),
       };
-      await conceptsApi.create(payload);
-      message.success('Concepto creado');
+
+      if (editing) {
+        await conceptsApi.update(String(editing.id), payload);
+        message.success('Concepto actualizado');
+      } else {
+        await conceptsApi.create(payload);
+        message.success('Concepto creado');
+      }
       setModalOpen(false);
       form.resetFields();
+      setEditing(null);
       loadConcepts();
     } catch {
-      message.error('Error al crear concepto');
+      message.error('Error al guardar concepto');
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await conceptsApi.delete(String(id));
+      message.success('Concepto eliminado');
+      loadConcepts();
+    } catch {
+      message.error('Error al eliminar concepto');
+    }
+  };
+
+  const openEdit = (record: FeeConcept) => {
+    setEditing(record);
+    form.setFieldsValue({
+      name: record.name,
+      amount: record.amount,
+      due_date: record.due_date ? dayjs(record.due_date) : null,
+    });
+    setModalOpen(true);
+  };
+
   const columns = [
-    { title: 'Nombre', dataIndex: 'name', key: 'name', render: (v: string | null) => <Text strong>{v || '—'}</Text> },
-    { title: 'Monto', dataIndex: 'amount', key: 'amount', render: (v: number | string | null) => v != null ? <Tag color="green">S/ {Number(v).toFixed(2)}</Tag> : '—' },
-    { title: 'Vencimiento', dataIndex: 'due_date', key: 'due_date', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+    { title: <span><TagOutlined /> Nombre</span>, dataIndex: 'name', key: 'name', render: (v: string | null) => <Text strong>{v || '—'}</Text> },
+    { title: <span><DollarOutlined /> Monto</span>, dataIndex: 'amount', key: 'amount', render: (v: number | string | null) => v != null ? <Tag color="green">S/ {Number(v).toFixed(2)}</Tag> : '—' },
+    { title: <span><CalendarOutlined /> Vencimiento</span>, dataIndex: 'due_date', key: 'due_date', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : '—' },
+    {
+      title: <span><SettingOutlined /> Acciones</span>, key: 'actions', width: 100, render: (_: unknown, r: FeeConcept) => (
+        <Space>
+          <Button icon={<EditOutlined />} size="small" onClick={() => openEdit(r)} />
+          <Popconfirm title="¿Eliminar concepto?" onConfirm={() => handleDelete(r.id)} okText="Sí" cancelText="No">
+            <Button icon={<DeleteOutlined />} size="small" danger />
+          </Popconfirm>
+        </Space>
+      )
+    },
   ];
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)} style={{ background: '#107c10', borderRadius: 4 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditing(null); form.resetFields(); setModalOpen(true); }} style={{ background: '#107c10', borderRadius: 4 }}>
           Nuevo Concepto
         </Button>
       </div>
@@ -74,9 +114,9 @@ const ConceptsTab: React.FC = () => {
       </Card>
 
       <Modal
-        title={<span><FileTextOutlined style={{ marginRight: 8, color: '#107c10' }} />Nuevo Concepto de Cobro</span>}
-        open={modalOpen} onOk={handleCreate} onCancel={() => setModalOpen(false)}
-        okText="Crear" cancelText="Cancelar"
+        title={<span><FileTextOutlined style={{ marginRight: 8, color: '#107c10' }} />{editing ? 'Editar Concepto' : 'Nuevo Concepto'}</span>}
+        open={modalOpen} onOk={handleSubmit} onCancel={() => { setModalOpen(false); setEditing(null); form.resetFields(); }}
+        okText={editing ? 'Guardar' : 'Crear'} cancelText="Cancelar"
         okButtonProps={{ style: { background: '#107c10', borderRadius: 4 } }}
       >
         <Form form={form} layout="vertical" requiredMark={false} style={{ marginTop: 16 }}>
@@ -232,31 +272,31 @@ const FamilyDebtsTab: React.FC = () => {
   const totalPaid = totalOriginal - totalDebt;
 
   const columns = [
-    { title: 'Estudiante', key: 'student', render: (_: unknown, r: FamilyDebt) => <Text strong>{r.student_first_name} {r.student_last_name}</Text> },
-    { title: 'Concepto', dataIndex: 'concept_name', key: 'concept_name' },
-    { title: 'Monto Original', dataIndex: 'original_amount', key: 'original_amount', render: (v: number | string) => `S/ ${Number(v).toFixed(2)}` },
+    { title: <span><UserOutlined /> Estudiante</span>, key: 'student', render: (_: unknown, r: FamilyDebt) => <Text strong>{r.student_first_name} {r.student_last_name}</Text> },
+    { title: <span><FileTextOutlined /> Concepto</span>, dataIndex: 'concept_name', key: 'concept_name' },
+    { title: <span><DollarOutlined /> Monto Original</span>, dataIndex: 'original_amount', key: 'original_amount', render: (v: number | string) => `S/ ${Number(v).toFixed(2)}` },
     {
-      title: 'Saldo Pendiente', dataIndex: 'balance', key: 'balance', render: (v: number | string) => (
+      title: <span><WarningOutlined /> Saldo Pendiente</span>, dataIndex: 'balance', key: 'balance', render: (v: number | string) => (
         <Text strong style={{ color: Number(v) > 0 ? '#d83b01' : '#107c10', fontSize: 14 }}>S/ {Number(v).toFixed(2)}</Text>
       )
     },
     {
-      title: 'Estado', dataIndex: 'status', key: 'status', render: (v: string) => (
-        <Tag color={statusColors[v] || 'default'} icon={v === 'paid' ? <CheckCircleOutlined /> : v === 'pending' ? <WarningOutlined /> : undefined}>
+      title: <span><InfoCircleOutlined /> Estado</span>, dataIndex: 'status', key: 'status', render: (v: string) => (
+        <Tag color={statusColors[v] || 'default'} icon={v === 'PAID' ? <CheckCircleOutlined /> : v === 'OVERDUE' ? <WarningOutlined /> : undefined}>
           {statusLabels[v] || v}
         </Tag>
       )
     },
     {
-      title: 'Vencimiento', dataIndex: 'due_date', key: 'due_date', render: (v: string | null) => {
+      title: <span><CalendarOutlined /> Vencimiento</span>, dataIndex: 'due_date', key: 'due_date', render: (v: string | null) => {
         if (!v) return '—';
         const isOverdue = dayjs(v).isBefore(dayjs(), 'day');
         return <Text style={isOverdue ? { color: '#a80000', fontWeight: 600 } : {}}>{dayjs(v).format('DD/MM/YYYY')}{isOverdue ? ' ⚠️' : ''}</Text>;
       }
     },
     {
-      title: 'Acción', key: 'action', render: (_: unknown, r: FamilyDebt) => {
-        if (r.status === 'paid') return <Tag color="green">✅ Pagado</Tag>;
+      title: <span><SettingOutlined /> Acción</span>, key: 'action', render: (_: unknown, r: FamilyDebt) => {
+        if (r.status === 'PAID') return <Tag color="green">✅ Pagado</Tag>;
         return (
           <Tooltip title={`Registrar pago de S/ ${Number(r.balance).toFixed(2)}`}>
             <Button type="primary" size="small" icon={<CreditCardOutlined />} onClick={() => openPayModal(r)}
@@ -309,8 +349,16 @@ const FamilyDebtsTab: React.FC = () => {
 
       {/* Debts Table */}
       <Card style={{ borderRadius: 8, border: '1px solid #e8e8e8' }} styles={{ body: { padding: 0 } }}>
-        <Table columns={columns} dataSource={debts} rowKey="fee_id" loading={loading} pagination={{ pageSize: 10 }}
-          locale={{ emptyText: <Empty description="Selecciona una familia para ver sus deudas" /> }} size="middle" />
+        <Table
+          columns={columns}
+          dataSource={debts}
+          rowKey="fee_id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          size="middle"
+          scroll={{ x: 800 }}
+          locale={{ emptyText: <Empty description="¡No se encontraron deudas!" /> }}
+        />
       </Card>
 
       {/* Pay Modal */}

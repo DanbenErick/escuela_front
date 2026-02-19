@@ -62,28 +62,8 @@ body {
 .login-bg {
   position: fixed;
   inset: 0;
-  background:
-    linear-gradient(135deg, #0078d4 0%, #1b1b2f 40%, #162447 70%, #1f4068 100%);
+  background: #f0f2f5;
   z-index: 0;
-}
-
-.login-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background:
-    radial-gradient(ellipse at 30% 20%, rgba(0, 120, 212, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, rgba(92, 45, 145, 0.1) 0%, transparent 50%);
-  animation: bgFloat 30s ease-in-out infinite;
-}
-
-@keyframes bgFloat {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(30px, -30px) rotate(1deg); }
-  66% { transform: translate(-20px, 20px) rotate(-1deg); }
 }
 
 .login-card {
@@ -141,39 +121,45 @@ body {
 }
 
 /* ─── Tabs Styling ─── */
-.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+.ant-tabs-card>.ant-tabs-nav .ant-tabs-tab {
   border-radius: 4px 4px 0 0 !important;
   border-bottom: none !important;
   padding: 6px 16px !important;
   font-size: 13px;
 }
 
-.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+.ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active {
   background: #fff !important;
   border-bottom-color: #fff !important;
 }
 
 /* ─── Table Styling ─── */
-.ant-table-wrapper .ant-table-thead > tr > th {
+.ant-table-wrapper .ant-table-thead>tr>th {
+  background: #0078d4 !important;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: #666;
-  padding: 10px 16px !important;
+  letter-spacing: 0.5px;
+  color: #ffffff !important;
+  padding: 12px 16px !important;
+  border-bottom: none !important;
 }
 
-.ant-table-wrapper .ant-table-tbody > tr > td {
+.ant-table-wrapper .ant-table-thead>tr>th .anticon {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.ant-table-wrapper .ant-table-tbody>tr>td {
   padding: 10px 16px !important;
   font-size: 13px;
 }
 
-.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+.ant-table-wrapper .ant-table-tbody>tr:hover>td {
   background: #f5f8fc !important;
 }
 
 /* ─── Form Styling ─── */
-.ant-form-item-label > label {
+.ant-form-item-label>label {
   font-weight: 500;
   font-size: 12px;
   color: #444;
@@ -252,10 +238,12 @@ body {
 
 /* ─── Print ─── */
 @media print {
+
   .ant-layout-sider,
   .ant-layout-header {
     display: none !important;
   }
+
   .ant-layout-content {
     margin: 0 !important;
     padding: 0 !important;

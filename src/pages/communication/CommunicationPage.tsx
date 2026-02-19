@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Card, Button, Modal, Form, Input, Select, Typography, Space,
-  Tag, message, Empty, Spin, Avatar, List,
+  Tag, message, Empty, Spin, Avatar, List, Popconfirm,
 } from 'antd';
 import {
   NotificationOutlined, PlusOutlined, UserOutlined,
-  ClockCircleOutlined, PushpinOutlined,
+  ClockCircleOutlined, PushpinOutlined, EditOutlined, DeleteOutlined,
 } from '@ant-design/icons';
 import { communicationApi } from '../../api/endpoints';
 import type { Communication, CreatePostRequest } from '../../types';
@@ -31,6 +31,7 @@ const CommunicationPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Communication | null>(null);
   const [form] = Form.useForm();
 
   const loadFeed = async () => {
@@ -49,26 +50,52 @@ const CommunicationPage: React.FC = () => {
     loadFeed();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setCreating(true);
-      const payload: CreatePostRequest = {
+      const payload = {
         title: values.title,
         body: values.body,
         type: values.type,
         target_role: values.target_role || undefined,
       };
-      await communicationApi.createPost(payload);
-      message.success('Publicación creada');
+
+      if (editing) {
+        await communicationApi.update(editing.id, payload);
+        message.success('Publicación actualizada');
+      } else {
+        await communicationApi.createPost(payload);
+        message.success('Publicación creada');
+      }
       setModalOpen(false);
       form.resetFields();
+      setEditing(null);
       loadFeed();
     } catch {
       /* validation */
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await communicationApi.delete(id);
+      message.success('Publicación eliminada');
+      loadFeed();
+    } catch { message.error('Error al eliminar'); }
+  };
+
+  const openEdit = (post: Communication) => {
+    setEditing(post);
+    form.setFieldsValue({
+      title: post.title,
+      body: post.body,
+      type: post.type,
+      target_role: post.target_role,
+    });
+    setModalOpen(true);
   };
 
   return (
@@ -83,7 +110,7 @@ const CommunicationPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => setModalOpen(true)}
+            onClick={() => { setEditing(null); form.resetFields(); setModalOpen(true); }}
             style={{ background: '#d83b01', borderRadius: 4 }}
           >
             Nueva Publicación
@@ -148,6 +175,14 @@ const CommunicationPage: React.FC = () => {
                       {new Date(post.created_at).toLocaleDateString('es-PE')}
                     </Text>
                   </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                    <Space>
+                      <Button icon={<EditOutlined />} size="small" onClick={() => openEdit(post)} />
+                      <Popconfirm title="¿Eliminar publicación?" onConfirm={() => handleDelete(post.id)} okText="Sí" cancelText="No">
+                        <Button icon={<DeleteOutlined />} size="small" danger />
+                      </Popconfirm>
+                    </Space>
+                  </div>
                 </div>
               </Card>
             </List.Item>
@@ -164,10 +199,10 @@ const CommunicationPage: React.FC = () => {
           </span>
         }
         open={modalOpen}
-        onOk={handleCreate}
-        onCancel={() => setModalOpen(false)}
+        onOk={handleSubmit}
+        onCancel={() => { setModalOpen(false); setEditing(null); form.resetFields(); }}
         confirmLoading={creating}
-        okText="Publicar"
+        okText={editing ? 'Guardar' : 'Publicar'}
         cancelText="Cancelar"
         okButtonProps={{ style: { background: '#d83b01', borderRadius: 4 } }}
         cancelButtonProps={{ style: { borderRadius: 4 } }}

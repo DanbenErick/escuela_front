@@ -17,6 +17,8 @@ export interface Student {
   birth_date: string | null;
   document_number: string | null;
   medical_info: string | null;
+  family_code?: string;
+  photo_url?: string;
 }
 
 export interface Family {
@@ -162,6 +164,7 @@ export interface AttendanceInput {
 }
 
 export interface ReportCardEntry {
+  grade_id: string;
   course_id: string;
   course_name: string | null;
   unit: string | null;

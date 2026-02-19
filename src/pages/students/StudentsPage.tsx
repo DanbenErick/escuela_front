@@ -6,6 +6,8 @@ import {
 import {
   PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined,
   UserOutlined, TeamOutlined, HomeOutlined, CameraOutlined,
+  IdcardOutlined, CalendarOutlined, SettingOutlined, MailOutlined,
+  TagOutlined, BarcodeOutlined,
 } from '@ant-design/icons';
 import { studentsApi, familiesApi, authApi, usersApi } from '../../api/endpoints';
 import type { Student, CreateStudentRequest, UpdateStudentRequest, Family, User } from '../../types';
@@ -108,9 +110,10 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
-  const [searchId, setSearchId] = useState('');
-  const [familyId, setFamilyId] = useState('');
+  const [searchText, setSearchText] = useState('');
   const [form] = Form.useForm();
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingStudentId, setUploadingStudentId] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -123,33 +126,15 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  const searchByStudent = async () => {
-    if (!searchId.trim()) { loadAll(); return; }
-    setLoading(true);
-    try {
-      const res = await studentsApi.getById(searchId.trim());
-      setStudents(res.data.data ? [res.data.data] : []);
-    } catch {
-      message.error('Estudiante no encontrado');
-      setStudents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const searchByFamily = async () => {
-    if (!familyId.trim()) { loadAll(); return; }
-    setLoading(true);
-    try {
-      const res = await studentsApi.getByFamily(familyId.trim());
-      setStudents(res.data.data || []);
-    } catch {
-      message.error('Error al buscar familia');
-      setStudents([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const filteredStudents = students.filter(s => {
+    if (!searchText) return true;
+    const term = searchText.toLowerCase();
+    const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
+    const doc = s.document_number?.toLowerCase() || '';
+    const fam = s.family_code?.toLowerCase() || '';
+    const famId = s.family_id?.toLowerCase() || '';
+    return fullName.includes(term) || doc.includes(term) || fam.includes(term) || famId.includes(term);
+  });
 
   const openCreate = () => { setEditing(null); form.resetFields(); setModalOpen(true); };
 
@@ -186,9 +171,6 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
     } catch { /* validation */ }
   };
 
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingStudentId, setUploadingStudentId] = useState<string | null>(null);
-
   const handleStudentPhoto = async (studentId: string, file: File) => {
     try {
       await studentsApi.uploadPhoto(studentId, file);
@@ -201,7 +183,7 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
 
   const columns = [
     {
-      title: 'Nombre', key: 'name',
+      title: <span><UserOutlined /> Nombre</span>, key: 'name',
       render: (_: unknown, r: Student) => (
         <Space>
           <Avatar size={32} src={(r as any).photo_url} icon={!(r as any).photo_url && <UserOutlined />} style={{ backgroundColor: (r as any).photo_url ? undefined : '#0078d4' }} />
@@ -209,11 +191,11 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
         </Space>
       ),
     },
-    { title: 'Documento', dataIndex: 'document_number', key: 'document_number', render: (v: string | null) => v || <Text type="secondary">—</Text> },
-    { title: 'Fecha Nac.', dataIndex: 'birth_date', key: 'birth_date', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
-    { title: 'Familia', key: 'family', render: (_: unknown, r: any) => <Text>{r.family_code || r.family_id?.substring(0, 8) + '...'}</Text> },
+    { title: <span><IdcardOutlined /> Documento</span>, dataIndex: 'document_number', key: 'document_number', render: (v: string | null) => v || <Text type="secondary">—</Text> },
+    { title: <span><CalendarOutlined /> Fecha Nac.</span>, dataIndex: 'birth_date', key: 'birth_date', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
+    { title: <span><TeamOutlined /> Familia</span>, key: 'family', render: (_: unknown, r: any) => <Text>{r.family_code || r.family_id?.substring(0, 8) + '...'}</Text> },
     {
-      title: 'Acciones', key: 'actions', width: 150,
+      title: <span><SettingOutlined /> Acciones</span>, key: 'actions', width: 150,
       render: (_: unknown, record: Student) => (
         <Space>
           <Tooltip title="Subir foto">
@@ -237,11 +219,13 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
       }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Space wrap>
-          <Input placeholder="ID del estudiante" value={searchId} onChange={(e) => setSearchId(e.target.value)} onPressEnter={searchByStudent} style={{ width: 220, borderRadius: 4 }} prefix={<SearchOutlined style={{ color: '#999' }} />} />
-          <Button onClick={searchByStudent} style={{ borderRadius: 4 }}>Buscar por ID</Button>
-          <Divider orientation="vertical" />
-          <Input placeholder="ID de familia" value={familyId} onChange={(e) => setFamilyId(e.target.value)} onPressEnter={searchByFamily} style={{ width: 220, borderRadius: 4 }} prefix={<TeamOutlined style={{ color: '#999' }} />} />
-          <Button onClick={searchByFamily} style={{ borderRadius: 4 }}>Buscar por Familia</Button>
+          <Input
+            placeholder="Filtrar por nombre, DNI o familia..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 350, borderRadius: 4 }}
+            prefix={<SearchOutlined style={{ color: '#999' }} />}
+          />
         </Space>
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} style={{ background: '#0078d4', borderRadius: 4 }}>
           Nuevo Estudiante
@@ -249,7 +233,7 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
       </div>
 
       <Card style={{ borderRadius: 8, border: '1px solid #e8e8e8' }} styles={{ body: { padding: 0 } }}>
-        <Table columns={columns} dataSource={students} rowKey="id" loading={loading} pagination={{ pageSize: 10, showSizeChanger: true }} locale={{ emptyText: 'Busca estudiantes por ID o Familia' }} size="middle" />
+        <Table columns={columns} dataSource={filteredStudents} rowKey="id" loading={loading} pagination={{ pageSize: 10, showSizeChanger: true }} size="middle" scroll={{ x: 800 }} locale={{ emptyText: 'No hay estudiantes registrados' }} />
       </Card>
 
       <Modal
@@ -352,17 +336,17 @@ const UsersTab: React.FC<{ users: RegisteredUser[]; onAdd: (u: RegisteredUser) =
 
   const columns = [
     {
-      title: 'Nombre', dataIndex: 'full_name', key: 'full_name', render: (v: string, r: any) => (
+      title: <span><UserOutlined /> Nombre</span>, dataIndex: 'full_name', key: 'full_name', render: (v: string, r: any) => (
         <Space>
           <Avatar size={32} src={r.photo_url} icon={!r.photo_url && <UserOutlined />} style={{ backgroundColor: r.photo_url ? undefined : '#0078d4' }} />
           <Text strong>{v || '—'}</Text>
         </Space>
       )
     },
-    { title: 'Correo', dataIndex: 'email', key: 'email' },
-    { title: 'Rol', dataIndex: 'role_id', key: 'role_id', render: (v: number) => <Tag color={roleColors[v] || 'default'}>{roleLabels[v] || v}</Tag> },
+    { title: <span><MailOutlined /> Correo</span>, dataIndex: 'email', key: 'email' },
+    { title: <span><TagOutlined /> Rol</span>, dataIndex: 'role_id', key: 'role_id', render: (v: number) => <Tag color={roleColors[v] || 'default'}>{roleLabels[v] || v}</Tag> },
     {
-      title: 'Acciones', key: 'actions', width: 150, render: (_: unknown, r: RegisteredUser) => (
+      title: <span><SettingOutlined /> Acciones</span>, key: 'actions', width: 150, render: (_: unknown, r: RegisteredUser) => (
         <Space size={4}>
           <Tooltip title="Subir foto">
             <Button type="text" size="small" icon={<CameraOutlined />} onClick={() => { setUploadingId(r.id); fileInputRef.current?.click(); }} />
@@ -390,7 +374,7 @@ const UsersTab: React.FC<{ users: RegisteredUser[]; onAdd: (u: RegisteredUser) =
       </div>
 
       <Card style={{ borderRadius: 8, border: '1px solid #e8e8e8' }} styles={{ body: { padding: 0 } }}>
-        <Table columns={columns} dataSource={users} rowKey="id" pagination={{ pageSize: 10, showSizeChanger: true }} size="middle" locale={{ emptyText: 'No hay usuarios registrados' }} />
+        <Table columns={columns} dataSource={users} rowKey="id" pagination={{ pageSize: 10, showSizeChanger: true }} size="middle" scroll={{ x: 800 }} locale={{ emptyText: 'No hay usuarios registrados' }} />
       </Card>
 
       <Modal
@@ -484,10 +468,10 @@ const FamiliesTabWithUsers: React.FC<{ tutors: RegisteredUser[]; families: Creat
   };
 
   const columns = [
-    { title: 'Código', dataIndex: 'family_code', key: 'family_code', render: (v: string) => <Text strong>{v || '—'}</Text> },
-    { title: 'Tutor Principal', dataIndex: 'guardian_name', key: 'guardian_name', render: (v: string | null) => v || <Text type="secondary">—</Text> },
+    { title: <span><BarcodeOutlined /> Código</span>, dataIndex: 'family_code', key: 'family_code', render: (v: string) => <Text strong>{v || '—'}</Text> },
+    { title: <span><UserOutlined /> Tutor Principal</span>, dataIndex: 'guardian_name', key: 'guardian_name', render: (v: string | null) => v || <Text type="secondary">—</Text> },
     {
-      title: 'Acciones', key: 'actions', width: 120, render: (_: unknown, r: CreatedFamily) => (
+      title: <span><SettingOutlined /> Acciones</span>, key: 'actions', width: 120, render: (_: unknown, r: CreatedFamily) => (
         <Space size={4}>
           <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
           <Popconfirm title="¿Eliminar familia?" description="Se eliminarán los estudiantes asociados" onConfirm={() => handleDelete(r.id)} okText="Sí" cancelText="No" okButtonProps={{ danger: true }}>
@@ -507,7 +491,7 @@ const FamiliesTabWithUsers: React.FC<{ tutors: RegisteredUser[]; families: Creat
       </div>
 
       <Card style={{ borderRadius: 8, border: '1px solid #e8e8e8' }} styles={{ body: { padding: 0 } }}>
-        <Table columns={columns} dataSource={families} rowKey="id" pagination={{ pageSize: 10, showSizeChanger: true }} size="middle" locale={{ emptyText: 'No hay familias registradas' }} />
+        <Table columns={columns} dataSource={families} rowKey="id" pagination={{ pageSize: 10 }} size="middle" scroll={{ x: 800 }} locale={{ emptyText: 'No hay familias registradas' }} />
       </Card>
 
       <Modal
