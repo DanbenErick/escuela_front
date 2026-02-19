@@ -25,6 +25,7 @@ const LoginPage: React.FC = () => {
         email: String(rawUser.email),
         roleId: Number(rawUser.role_id ?? rawUser.roleId),
         fullName: String(rawUser.full_name || rawUser.fullName || ''),
+        photoUrl: rawUser.photo_url ? String(rawUser.photo_url) : undefined,
       });
       message.success('¡Bienvenido!');
       navigate('/dashboard');

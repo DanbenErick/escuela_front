@@ -173,7 +173,7 @@ const DashboardLayout: React.FC = () => {
               }}
               className="win-btn"
             >
-              <Avatar size={28} icon={<UserOutlined />} style={{ backgroundColor: roleColors[user?.roleId ?? 1] }} />
+              <Avatar size={28} src={user?.photoUrl} icon={!user?.photoUrl && <UserOutlined />} style={{ backgroundColor: user?.photoUrl ? undefined : roleColors[user?.roleId ?? 1] }} />
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                 <Text style={{ fontSize: 12, color: '#333' }}>{user?.fullName || user?.email}</Text>
                 <Tag color={roleColors[user?.roleId ?? 1]} style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0, borderRadius: 3 }}>{roleLabels[user?.roleId ?? 1]}</Tag>

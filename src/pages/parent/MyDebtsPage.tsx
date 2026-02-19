@@ -31,7 +31,8 @@ const MyDebtsPage: React.FC = () => {
         for (const fam of families) {
           try {
             const debtRes = await financeApi.getFamilyDebt(fam.id);
-            allDebts.push(...(debtRes.data.data || []));
+            const payload = debtRes.data.data as any;
+            allDebts.push(...(payload?.items || payload || []));
           } catch { /* family might have no debts */ }
         }
         setDebts(allDebts);

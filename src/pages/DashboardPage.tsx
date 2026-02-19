@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Col, Row, Typography, Statistic } from 'antd';
+import { Avatar, Card, Col, Row, Typography, Statistic } from 'antd';
 import {
   TeamOutlined,
   DollarOutlined,
@@ -7,6 +7,7 @@ import {
   NotificationOutlined,
   ArrowRightOutlined,
   HeartOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -58,12 +59,22 @@ const DashboardPage: React.FC = () => {
       >
         <div style={{ position: 'absolute', right: -40, top: -40, width: 200, height: 200, background: 'rgba(255,255,255,0.04)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', right: 60, bottom: -50, width: 140, height: 140, background: 'rgba(255,255,255,0.03)', borderRadius: '50%' }} />
-        <Title level={3} style={{ color: '#fff', margin: 0, fontWeight: 600 }}>
-          ¡Hola, {user?.fullName || user?.email}!
-        </Title>
-        <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, display: 'block', marginTop: 4 }}>
-          {roleGreetings[roleId]} · {roleLabels[roleId]}
-        </Text>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <Avatar
+            size={72}
+            src={user?.photoUrl}
+            icon={!user?.photoUrl && <UserOutlined />}
+            style={{ backgroundColor: user?.photoUrl ? undefined : 'rgba(255,255,255,0.2)', border: '3px solid rgba(255,255,255,0.3)', flexShrink: 0 }}
+          />
+          <div>
+            <Title level={3} style={{ color: '#fff', margin: 0, fontWeight: 600 }}>
+              ¡Hola, {user?.fullName || user?.email}!
+            </Title>
+            <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, display: 'block', marginTop: 4 }}>
+              {roleGreetings[roleId]} · {roleLabels[roleId]}
+            </Text>
+          </div>
+        </div>
       </div>
 
       {/* Module Cards */}

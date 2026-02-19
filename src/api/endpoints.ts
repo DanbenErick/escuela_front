@@ -47,6 +47,14 @@ export const usersApi = {
 
   delete: (id: string) =>
     api.delete<ApiResponse>(`/users/${id}`),
+
+  uploadPhoto: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return api.post<ApiResponse<{ photo_url: string }>>(`/users/${id}/photo`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // ─── Families ────────────────────────────────────────────────────────────────
@@ -91,6 +99,14 @@ export const studentsApi = {
 
   delete: (id: string) =>
     api.delete<ApiResponse>(`/students/${id}`),
+
+  uploadPhoto: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return api.post<ApiResponse<{ photo_url: string }>>(`/students/${id}/photo`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // ─── Fee Concepts ────────────────────────────────────────────────────────────

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Table, Button, Modal, Form, Input, DatePicker, Space, Popconfirm,
-  Typography, Card, message, Divider, Tag, Tooltip, Tabs, Select,
+  Typography, Card, message, Divider, Tag, Tooltip, Tabs, Select, Avatar,
 } from 'antd';
 import {
   PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined,
-  UserOutlined, TeamOutlined, HomeOutlined,
+  UserOutlined, TeamOutlined, HomeOutlined, CameraOutlined,
 } from '@ant-design/icons';
 import { studentsApi, familiesApi, authApi, usersApi } from '../../api/endpoints';
 import type { Student, CreateStudentRequest, UpdateStudentRequest, Family, User } from '../../types';
@@ -186,20 +186,39 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
     } catch { /* validation */ }
   };
 
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingStudentId, setUploadingStudentId] = useState<string | null>(null);
+
+  const handleStudentPhoto = async (studentId: string, file: File) => {
+    try {
+      await studentsApi.uploadPhoto(studentId, file);
+      message.success('Foto del estudiante actualizada');
+      loadAll();
+    } catch {
+      message.error('Error al subir foto');
+    }
+  };
+
   const columns = [
     {
       title: 'Nombre', key: 'name',
       render: (_: unknown, r: Student) => (
-        <Space><UserOutlined style={{ color: '#0078d4' }} /><Text strong>{r.first_name} {r.last_name}</Text></Space>
+        <Space>
+          <Avatar size={32} src={(r as any).photo_url} icon={!(r as any).photo_url && <UserOutlined />} style={{ backgroundColor: (r as any).photo_url ? undefined : '#0078d4' }} />
+          <Text strong>{r.first_name} {r.last_name}</Text>
+        </Space>
       ),
     },
     { title: 'Documento', dataIndex: 'document_number', key: 'document_number', render: (v: string | null) => v || <Text type="secondary">—</Text> },
     { title: 'Fecha Nac.', dataIndex: 'birth_date', key: 'birth_date', render: (v: string | null) => v ? dayjs(v).format('DD/MM/YYYY') : <Text type="secondary">—</Text> },
     { title: 'Familia', key: 'family', render: (_: unknown, r: any) => <Text>{r.family_code || r.family_id?.substring(0, 8) + '...'}</Text> },
     {
-      title: 'Acciones', key: 'actions', width: 120,
+      title: 'Acciones', key: 'actions', width: 150,
       render: (_: unknown, record: Student) => (
         <Space>
+          <Tooltip title="Subir foto">
+            <Button type="text" icon={<CameraOutlined />} onClick={() => { setUploadingStudentId(record.id); photoInputRef.current?.click(); }} size="small" />
+          </Tooltip>
           <Tooltip title="Editar"><Button type="text" icon={<EditOutlined />} onClick={() => openEdit(record)} size="small" /></Tooltip>
           <Popconfirm title="¿Eliminar este estudiante?" onConfirm={() => handleDelete(record.id)} okText="Sí" cancelText="No">
             <Tooltip title="Eliminar"><Button type="text" danger icon={<DeleteOutlined />} size="small" /></Tooltip>
@@ -211,6 +230,11 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
 
   return (
     <div>
+      <input type="file" accept="image/*" ref={photoInputRef} style={{ display: 'none' }} onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file && uploadingStudentId) { handleStudentPhoto(uploadingStudentId, file); }
+        e.target.value = '';
+      }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <Space wrap>
           <Input placeholder="ID del estudiante" value={searchId} onChange={(e) => setSearchId(e.target.value)} onPressEnter={searchByStudent} style={{ width: 220, borderRadius: 4 }} prefix={<SearchOutlined style={{ color: '#999' }} />} />
@@ -252,7 +276,7 @@ const StudentsTab: React.FC<{ families: CreatedFamily[] }> = ({ families }) => {
 };
 
 /* ─── Shared types ─── */
-interface RegisteredUser { id: string; email: string; full_name: string; role_id: number }
+interface RegisteredUser { id: string; email: string; full_name: string; role_id: number; photo_url?: string }
 interface CreatedFamily { id: string; family_code: string; guardian_name?: string }
 
 /* ─── Register Users Tab ─── */
@@ -313,13 +337,36 @@ const UsersTab: React.FC<{ users: RegisteredUser[]; onAdd: (u: RegisteredUser) =
     }
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const handlePhotoUpload = async (userId: string, file: File) => {
+    try {
+      await usersApi.uploadPhoto(userId, file);
+      message.success('Foto actualizada');
+      onReload();
+    } catch {
+      message.error('Error al subir foto');
+    }
+  };
+
   const columns = [
-    { title: 'Nombre', dataIndex: 'full_name', key: 'full_name', render: (v: string) => <Text strong>{v || '—'}</Text> },
+    {
+      title: 'Nombre', dataIndex: 'full_name', key: 'full_name', render: (v: string, r: any) => (
+        <Space>
+          <Avatar size={32} src={r.photo_url} icon={!r.photo_url && <UserOutlined />} style={{ backgroundColor: r.photo_url ? undefined : '#0078d4' }} />
+          <Text strong>{v || '—'}</Text>
+        </Space>
+      )
+    },
     { title: 'Correo', dataIndex: 'email', key: 'email' },
     { title: 'Rol', dataIndex: 'role_id', key: 'role_id', render: (v: number) => <Tag color={roleColors[v] || 'default'}>{roleLabels[v] || v}</Tag> },
     {
-      title: 'Acciones', key: 'actions', width: 120, render: (_: unknown, r: RegisteredUser) => (
+      title: 'Acciones', key: 'actions', width: 150, render: (_: unknown, r: RegisteredUser) => (
         <Space size={4}>
+          <Tooltip title="Subir foto">
+            <Button type="text" size="small" icon={<CameraOutlined />} onClick={() => { setUploadingId(r.id); fileInputRef.current?.click(); }} />
+          </Tooltip>
           <Button type="text" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
           <Popconfirm title="¿Eliminar usuario?" onConfirm={() => handleDelete(r.id)} okText="Sí" cancelText="No" okButtonProps={{ danger: true }}>
             <Button type="text" size="small" danger icon={<DeleteOutlined />} />
@@ -331,6 +378,11 @@ const UsersTab: React.FC<{ users: RegisteredUser[]; onAdd: (u: RegisteredUser) =
 
   return (
     <div>
+      <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file && uploadingId) { handlePhotoUpload(uploadingId, file); }
+        e.target.value = '';
+      }} />
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditing(null); form.resetFields(); setModalOpen(true); }} style={{ background: '#0078d4', borderRadius: 4 }}>
           Nuevo Usuario
@@ -492,7 +544,7 @@ const StudentsPage: React.FC = () => {
     try {
       const res = await usersApi.getAll();
       const users = (res.data.data || []) as unknown as User[];
-      setRegisteredUsers(users.map(u => ({ id: u.id, email: u.email, full_name: u.full_name || '', role_id: u.role_id })));
+      setRegisteredUsers(users.map(u => ({ id: u.id, email: u.email, full_name: u.full_name || '', role_id: u.role_id, photo_url: (u as any).photo_url })));
     } catch { /* silently fail on first load */ }
   }, []);
 

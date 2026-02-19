@@ -192,7 +192,8 @@ const FamilyDebtsTab: React.FC = () => {
     setLoading(true);
     try {
       const res = await financeApi.getFamilyDebt(id);
-      setDebts(res.data.data || []);
+      const payload = res.data.data as any;
+      setDebts(payload?.items || payload || []);
     } catch {
       message.error('Error al buscar deudas');
       setDebts([]);

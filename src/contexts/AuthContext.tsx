@@ -6,6 +6,7 @@ interface AuthUser {
   email: string;
   roleId: number;
   fullName?: string;
+  photoUrl?: string;
 }
 
 interface AuthContextType {
